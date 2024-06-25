@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast"
 
 import XSvg from "../../../components/svgs/X";
 
@@ -7,6 +9,7 @@ import { MdOutlineMail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 const SignUpPage = () => {
 	const [formData, setFormData] = useState({
@@ -17,16 +20,48 @@ const SignUpPage = () => {
         confirmPassword: "",
 	});
 
+	const queryClient = useQueryClient();
+
+	const {mutate:signUpMutation, isError, isPending, error} = useMutation({
+		mutationFn: async ({email, username, fullName, password, confirmPassword}) => {
+			if(password !== confirmPassword){
+				return toast.error("Passwords do not match");
+			}
+			try {
+				const res = await fetch("/api/auth/signup", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({email, username, fullName, password, confirmPassword})
+				});
+				
+				const data = await res.json();
+
+				if(!res.ok){
+					throw new Error(data.error || "Failed to create account");
+				}
+
+				return data;
+			} catch (error) {
+				throw error;
+			}
+		},
+
+		onSuccess: () => {
+			queryClient.invalidateQueries({queryKey: ["authUser"]});
+		}
+	});
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		console.log(formData);
+		signUpMutation(formData);
 	};
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const isError = false;
 
 	return (
 		<div className='max-w-screen-xl mx-auto flex h-screen px-10'>
@@ -46,6 +81,7 @@ const SignUpPage = () => {
 							name='email'
 							onChange={handleInputChange}
 							value={formData.email}
+							required
 						/>
 					</label>
 					<div className='flex gap-4 flex-wrap'>
@@ -58,6 +94,7 @@ const SignUpPage = () => {
 								name='username'
 								onChange={handleInputChange}
 								value={formData.username}
+								required
 							/>
 						</label>
 						<label className='input input-bordered rounded flex items-center gap-2 flex-1'>
@@ -69,6 +106,7 @@ const SignUpPage = () => {
 								name='fullName'
 								onChange={handleInputChange}
 								value={formData.fullName}
+								required
 							/>
 						</label>
 					</div>
@@ -81,6 +119,7 @@ const SignUpPage = () => {
 							name='password'
 							onChange={handleInputChange}
 							value={formData.password}
+							required
 						/>
 					</label>
 					<label className='input input-bordered rounded flex items-center gap-2'>
@@ -89,13 +128,16 @@ const SignUpPage = () => {
 							type='password'
 							className='grow'
 							placeholder='Confirm Password'
-							name='password'
+							name='confirmPassword'
 							onChange={handleInputChange}
 							value={formData.confirmPassword}
+							required
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Sign up</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					<button className='btn rounded-full btn-primary text-white'>
+						{isPending ? <LoadingSpinner /> : "Sign Up"}
+					</button>
+					{isError && <p className='text-red-500'>{error.message}</p>}
 				</form>
 				<div className='flex flex-col lg:w-2/3 gap-2 mt-4'>
 					<p className='text-white text-lg'>Already have an account?</p>
