@@ -20,13 +20,13 @@ const NotificationPage = () => {
 				const data = await res.json();
 
 				if (!res.ok) {
-					throw new Error(data.message || "Something went wrong");
+					throw new Error(data.error || "Something went wrong");
 				}
 
 				console.log(data);
 				return data;
 			} catch (error) {
-				toast.error(data.message);
+				toast.error(data.error);
 			}
 		}
 	});
@@ -42,7 +42,7 @@ const NotificationPage = () => {
 	
 				if(!res.ok) throw new Error(data.error || "Something went wrong");
 			} catch (error) {
-				toast.error(data.message);
+				toast.error(data.error);
 			}
 		},
 		onSuccess: () => {

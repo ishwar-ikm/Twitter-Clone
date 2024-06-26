@@ -13,6 +13,10 @@ import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date/date";
+import useFollow from "../../hooks/useFollow";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import toast from "react-hot-toast";
+import useUpdateProfile from "../../hooks/useUpdateProfile";
 
 const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
@@ -22,7 +26,9 @@ const ProfilePage = () => {
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
 
-	const isMyProfile = true;
+	const {data:authUser} = useQuery({queryKey: ['authUser']});
+
+	const {isPending, follow} = useFollow();
 
 	const {username} = useParams();
 
@@ -56,10 +62,22 @@ const ProfilePage = () => {
 			};
 			reader.readAsDataURL(file);
 		}
-	};	
+	};
+
+	const {updateProfile, isPending:isUpdatingUser} = useUpdateProfile();
 
 	
 	const memberSince = formatMemberSinceDate(user?.createdAt);
+
+	const isMyProfile = authUser?._id === user?._id;
+
+	const updateFollowText = (authUser.following.includes(user?._id)) ? "Unfollow" : "Follow";
+
+	const handleUpdate = async () => {
+		await updateProfile({profileImg, coverImg});
+		setCoverImg(null);
+		setProfileImg(null);
+	}
 
 	return (
 		<>
@@ -129,17 +147,18 @@ const ProfilePage = () => {
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => alert("Followed successfully")}
+										onClick={() => follow(user?._id)}
 									>
-										Follow
+										{isPending && <LoadingSpinner size="sm" />}
+										{!isPending && updateFollowText}
 									</button>
 								)}
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => alert("Profile updated successfully")}
+										onClick={handleUpdate}
 									>
-										Update
+										{isUpdatingUser ? <LoadingSpinner size="sm" /> : "Update"}
 									</button>
 								)}
 							</div>
@@ -162,7 +181,7 @@ const ProfilePage = () => {
 													rel='noreferrer'
 													className='text-sm text-blue-500 hover:underline'
 												>
-													youtube.com/@asaprogrammer_
+													{user?.link}
 												</a>
 											</>
 										</div>

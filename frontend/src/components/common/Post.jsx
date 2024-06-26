@@ -61,7 +61,7 @@ const Post = ({ post }) => {
 				const data = res.json();
 
 				if (!res.ok) {
-					throw new Error(data.message || "something went wrong");
+					throw new Error(data.error || "something went wrong");
 				}
 
 				return data;
@@ -95,7 +95,7 @@ const Post = ({ post }) => {
 				const data = await res.json();
 
 				if (!res.ok) {
-					throw new Error(data.message || "something went wrong");
+					throw new Error(data.error || "something went wrong");
 				}
 				
 				console.log(data);
