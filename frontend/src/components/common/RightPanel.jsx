@@ -1,9 +1,30 @@
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
-import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy";
+import {useQuery} from "@tanstack/react-query"
+import toast from "react-hot-toast";
 
 const RightPanel = () => {
-	const isLoading = false;
+
+	const {data:USERS_FOR_RIGHT_PANEL, isLoading, isError, error} = useQuery({
+		queryKey: ['suggestedUser'],
+		queryFn: async () => {
+			try {
+				const res = await fetch('/api/users/suggested');
+				const data = res.json();
+
+				if(!res.ok){
+					throw new Error(data.error || "Something went wrong");
+				}
+
+				return data;
+			} catch (error) {
+				toast.error(error.message);
+			}
+		}
+	})
+
+	// If there are no users to follow then there will be an empty div so that the post section doesn't stretch
+	if(USERS_FOR_RIGHT_PANEL.length === 0) return <div className="md:w-64 w-0"></div>
 
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
