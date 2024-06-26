@@ -4,17 +4,30 @@ import {useQuery} from "@tanstack/react-query"
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 
-const Posts = ({feedType}) => {
+
+const Posts = ({feedType, username, userId}) => {
+
+	const getEndPoint = () => {
+		console.log(feedType);
+		switch(feedType){
+			case "forYou":
+				return "/api/posts/all";
+			case "following":
+				return "/api/posts/following";
+			case "posts":
+				return `/api/posts/user/${username}`;
+			case "likes":
+				return `/api/posts/likes/${userId}`;
+			default:
+				return "/api/posts/all";
+		}
+	}
 
 	const {data:POSTS, isLoading, refetch, isRefetching} = useQuery({
 		queryKey: ["posts"],
 		queryFn: async () => {
 			try {
-				let endpoint = "/api/posts/all";
-
-				if(feedType === "following"){
-					endpoint = "/api/posts/following";
-				}
+				const endpoint = getEndPoint();
 
 				const res = await fetch(endpoint);
 				const data = res.json();
@@ -32,7 +45,7 @@ const Posts = ({feedType}) => {
 
 	useEffect(() => {
 		refetch();
-	}, [feedType]);
+	}, [feedType, username]);
 
 	return (
 		<>

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/home/HomePage';
 import SignUpPage from './pages/auth/signup/SignUpPage';
@@ -13,12 +12,12 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 
 function App() {
 
-  const {data:authUser, isLoading, isError, error} = useQuery({
+  const {data:authUser, isLoading} = useQuery({
     // is used to refer to this data in other components
     queryKey: ['authUser'],
     queryFn: async () => {
       try {
-        const res = await fetch("api/auth/me");
+        const res = await fetch("/api/auth/me");
         const data = await res.json();
 
         if(data.error) return null;
@@ -29,7 +28,7 @@ function App() {
         console.log(data);
         return data;
       } catch (error) {
-        throw error;
+        throw new Error(error);
       }
     },
     retry: false
@@ -42,7 +41,7 @@ function App() {
       </div>
     )
   }
-
+  // console.log(authUser);
   return (
     <div className='flex max-w-6xl mx-auto'>
       {authUser && <Sidebar />}
