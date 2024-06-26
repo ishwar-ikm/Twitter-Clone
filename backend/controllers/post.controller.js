@@ -142,9 +142,6 @@ export const getAllPosts = async (req, res) => {
         }).populate({
             path: "comments.user",
             select: "-password"
-        }).populate({
-            path: "likes",
-            select: "-password"
         })
 
         if(posts.length === 0) {
