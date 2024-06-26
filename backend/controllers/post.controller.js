@@ -104,7 +104,15 @@ export const commentOnPost = async (req, res) => {
         post.comments.push(comment);
         await post.save();
 
-        res.status(200).json(post);
+        const populatedPost = await Post.findById(postId).populate({
+            path: "user",
+            select: "-password"
+        }).populate({
+            path: "comments.user",
+            select: "-password"
+        })
+
+        res.status(200).json(populatedPost);
     } catch (error) {
         console.log("Error in comment on post ", error.message);
         res.status(500).json({error: "Internal server error"});
