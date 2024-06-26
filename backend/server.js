@@ -19,8 +19,9 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const PORT = process.env.PORT;
 const app = express();
+const PORT = process.env.PORT;
+const __dirname = path.resolve();
 
 app.use(express.json({limit: "5mb"}));
 app.use(express.urlencoded({ extended: true }));
