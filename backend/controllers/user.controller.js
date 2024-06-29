@@ -166,3 +166,42 @@ export const updateUser = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+
+export const getSearchUser = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        let user = await User.findOne(userId);
+
+        if(!user){
+            return res.status(404).json({message: "User not found"});
+        }
+
+        const {searchTerm} = req.params;
+
+        if(!searchTerm){
+            return res.status(400).json({error: "Search term is required"});
+        }
+
+        // here i means the search will be case insensitive
+        const regex = RegExp(searchTerm, "i");
+
+        // Search the user using mongoose
+        const users = await User.find({
+            $or: [
+                {username: regex},
+                {fullName: regex}
+            ]
+        }).select("-password");
+
+        // Remove ourself from the searched users
+        const filteredUsers = users.filter(user => {
+            return user._id.toString() !== userId.toString();
+        });
+
+        res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.log("Error in getSearchUser ", error.message);
+        res.status(500).json({ error: error.message });
+    }
+}
