@@ -7,6 +7,7 @@ import { FaHeart } from "react-icons/fa6";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
+import { formatPostDate } from "../../utils/date/date";
 
 const NotificationPage = () => {
 
@@ -22,7 +23,7 @@ const NotificationPage = () => {
 				if (!res.ok) {
 					throw new Error(data.error || "Something went wrong");
 				}
-				
+
 				return data;
 			} catch (error) {
 				toast.error(data.error);
@@ -30,22 +31,22 @@ const NotificationPage = () => {
 		}
 	});
 
-	const {mutate:deleteNotifications, isPending} = useMutation({
+	const { mutate: deleteNotifications, isPending } = useMutation({
 		mutationFn: async () => {
 			try {
 				const res = await fetch('/api/notifications/', {
 					method: "DELETE",
 				});
-	
+
 				const data = await res.json();
-	
-				if(!res.ok) throw new Error(data.error || "Something went wrong");
+
+				if (!res.ok) throw new Error(data.error || "Something went wrong");
 			} catch (error) {
 				throw error;;
 			}
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({queryKey: ["notifications"]});
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 			toast.success("Deleted all notifications");
 		},
 		onError: (error) => {
@@ -53,10 +54,6 @@ const NotificationPage = () => {
 		}
 	})
 
-
-	// const deleteNotifications = () => {
-	// 	alert("All notifications deleted");
-	// };
 
 	return (
 		<>
@@ -89,15 +86,18 @@ const NotificationPage = () => {
 							{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
 							{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
 							<Link to={`/profile/${notification.from.username}`}>
-								<div className='avatar'>
-									<div className='w-8 rounded-full'>
-										<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
+								<div>
+									<div className='avatar'>
+										<div className='w-8 rounded-full'>
+											<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
+										</div>
+									</div>
+									<div className='flex gap-1'>
+											<span className='font-bold'>@{notification.from.username}</span>{" "}
+											{notification.type === "follow" ? "followed you" : "liked your post"}
 									</div>
 								</div>
-								<div className='flex gap-1'>
-									<span className='font-bold'>@{notification.from.username}</span>{" "}
-									{notification.type === "follow" ? "followed you" : "liked your post"}
-								</div>
+								<span className='text-sm text-slate-500'>{formatPostDate(notification.createdAt)}</span>
 							</Link>
 						</div>
 					</div>
