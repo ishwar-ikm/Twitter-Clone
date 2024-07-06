@@ -1,8 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
+import useFollow from '../../hooks/useFollow';
+import { useQuery } from '@tanstack/react-query';
 
-const UsersList = ({user, isPending, from}) => {
+const UsersList = ({user, from}) => {
+	
+	const {follow, isPending} = useFollow();
+	const {data:authUser} = useQuery({queryKey: ["authUser"]});
+
 	return (
 		<Link
 			to={`/profile/${user.username}`}
@@ -30,7 +36,7 @@ const UsersList = ({user, isPending, from}) => {
 						follow(user._id);
 					}}
 				>
-					{isPending ? <LoadingSpinner /> : "Follow"}
+					{isPending ? <LoadingSpinner /> : (authUser.following.includes(user._id) ? "Unfollow" : "Follow")}
 				</button>
 			</div>
 		</Link>
