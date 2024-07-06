@@ -1,9 +1,6 @@
-import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import {useQuery} from "@tanstack/react-query"
 import toast from "react-hot-toast";
-import useFollow from "../../hooks/useFollow";
-import LoadingSpinner from "./LoadingSpinner"
 import UsersList from "./UsersList";
 
 const RightPanel = () => {
@@ -26,8 +23,6 @@ const RightPanel = () => {
 		}
 	});
 
-	const {follow, isPending} = useFollow();
-
 	// If there are no users to follow then there will be an empty div so that the post section doesn't stretch
 	if(USERS_FOR_RIGHT_PANEL?.length === 0) return <div className="md:w-64 w-0"></div>
 
@@ -47,7 +42,7 @@ const RightPanel = () => {
 					)}
 					{!isLoading &&
 						USERS_FOR_RIGHT_PANEL?.map((user) => (
-							<UsersList user={user} isPending={isPending} from={"RightPanel"} />
+							<UsersList user={user} from={"RightPanel"} key={user._id}/>
 						))}
 				</div>
 			</div>
