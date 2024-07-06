@@ -8,9 +8,19 @@ import UsersList from '../../components/common/UsersList';
 const SearchPage = () => {
 
 	const [searchInput, setSearchInput] = useState("");
+	const [searchInput, setSearchInput] = useState("");
 
 	const [searchResult, setSearchResult] = useState([]);
+	const [searchResult, setSearchResult] = useState([]);
 
+	const { mutate: search, isPending } = useMutation({
+		mutationFn: async () => {
+			try {
+				if (searchInput === "") {
+					throw new Error("Enter something to search");
+				}
+				const res = await fetch(`/api/users/searchUser/${searchInput}`);
+				const data = await res.json();
 	const { mutate: search, isPending } = useMutation({
 		mutationFn: async () => {
 			try {
@@ -23,7 +33,18 @@ const SearchPage = () => {
 				if (!res.ok) {
 					throw new Error(data.error || "Something went wrong");
 				}
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
 
+				return data;
+			} catch (error) {
+				throw error;
+			}
+		},
+		onSuccess: async (data) => {
+			setSearchResult(data);
+		},
 				return data;
 			} catch (error) {
 				throw error;
@@ -37,7 +58,14 @@ const SearchPage = () => {
 			toast.error(error.message);
 		}
 	});
+		onError: async (error) => {
+			toast.error(error.message);
+		}
+	});
 
+	const handleSearch = () => {
+		search();
+	}
 	const handleSearch = () => {
 		search();
 	}
@@ -65,6 +93,7 @@ const SearchPage = () => {
 			</div>
 		</>
 
+	)
 	)
 }
 
