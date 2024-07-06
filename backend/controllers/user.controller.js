@@ -1,6 +1,6 @@
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js"
-import {v2 as cloudinary} from "cloudinary" 
+import { v2 as cloudinary } from "cloudinary"
 import bcrypt from "bcryptjs"
 import { validateEmail } from "../utils/validateEmail.js";
 
@@ -23,30 +23,30 @@ export const getUserProfile = async (req, res) => {
 }
 
 export const getSuggestedUsers = async (req, res) => {
-	try {
-		const userId = req.user._id;
+    try {
+        const userId = req.user._id;
 
-		const usersFollowedByMe = await User.findById(userId).select("following");
+        const usersFollowedByMe = await User.findById(userId).select("following");
 
-		const users = await User.aggregate([
-			{
-				$match: {
-					_id: { $ne: userId },
-				},
-			},
-			{ $sample: { size: 10 } },
-		]);
+        const users = await User.aggregate([
+            {
+                $match: {
+                    _id: { $ne: userId },
+                },
+            },
+            { $sample: { size: 10 } },
+        ]);
 
-		const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id));
-		const suggestedUsers = filteredUsers.slice(0, 4);
+        const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id));
+        const suggestedUsers = filteredUsers.slice(0, 4);
 
-		suggestedUsers.forEach((user) => (user.password = null));
+        suggestedUsers.forEach((user) => (user.password = null));
 
-		res.status(200).json(suggestedUsers);
-	} catch (error) {
-		console.log("Error in getSuggestedUsers: ", error.message);
-		res.status(500).json({ error: error.message });
-	}
+        res.status(200).json(suggestedUsers);
+    } catch (error) {
+        console.log("Error in getSuggestedUsers: ", error.message);
+        res.status(500).json({ error: error.message });
+    }
 };
 
 export const followUnfollowUser = async (req, res) => {
@@ -68,8 +68,8 @@ export const followUnfollowUser = async (req, res) => {
         if (isFollowing) {
             await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } });
             await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } });
-            
-            res.status(200).json({message: "User unfollowed successfully"});
+
+            res.status(200).json({ message: "User unfollowed successfully" });
         } else {
             await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } });
             await User.findByIdAndUpdate(req.user._id, { $push: { following: id } });
@@ -80,9 +80,9 @@ export const followUnfollowUser = async (req, res) => {
                 to: userToFollowUnfollow._id
             });
 
-            await newNotification.save(); 
+            await newNotification.save();
 
-            res.status(200).json({message: "User followed successfully"});
+            res.status(200).json({ message: "User followed successfully" });
         }
     } catch (error) {
         console.log("Error in followUnfollowUser ", error.message);
@@ -91,40 +91,40 @@ export const followUnfollowUser = async (req, res) => {
 }
 
 export const updateUser = async (req, res) => {
-    const {username, fullName, currentPassword, newPassword, email, bio, link} = req.body;
+    const { username, fullName, currentPassword, newPassword, email, bio, link } = req.body;
 
-    let {profileImg, coverImg} = req.body;
+    let { profileImg, coverImg } = req.body;
 
     const userId = req.user._id;
 
     try {
         let user = await User.findOne(userId);
 
-        if(!user){
-            return res.status(404).json({message: "User not found"});
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
         }
 
-        if((!currentPassword && newPassword) || (currentPassword && !newPassword)){
-            return res.status(404).json({error: "Provide both current password as well as new password"});
+        if ((!currentPassword && newPassword) || (currentPassword && !newPassword)) {
+            return res.status(404).json({ error: "Provide both current password as well as new password" });
         }
 
-        if(currentPassword && newPassword){
+        if (currentPassword && newPassword) {
             const isMatched = await bcrypt.compare(currentPassword, user.password);
 
-            if(!isMatched){
-                return res.status(400).json({error: "Password is incorrect"});
+            if (!isMatched) {
+                return res.status(400).json({ error: "Password is incorrect" });
             }
 
-            if(newPassword.length < 6) {
-                return res.status(400).json({error: "Password must be minimum of 6 characters"});
+            if (newPassword.length < 6) {
+                return res.status(400).json({ error: "Password must be minimum of 6 characters" });
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             user.password = hashedPassword;
         }
 
-        if(profileImg){
-            if(user.profileImg){
+        if (profileImg) {
+            if (user.profileImg) {
                 // we can destroy the image using a ID which is present at the end of the URL
                 await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
             }
@@ -132,21 +132,21 @@ export const updateUser = async (req, res) => {
             profileImg = uploadRes.secure_url;
         }
 
-        if(coverImg){
-            if(user.coverImg){
+        if (coverImg) {
+            if (user.coverImg) {
                 await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
             }
             const coverRes = await cloudinary.uploader.upload(coverImg);
             coverImg = coverRes.secure_url;
         }
 
-        if(email && !validateEmail(email)){
-            return res.status(400).json({error: "Invalid email"});
+        if (email && !validateEmail(email)) {
+            return res.status(400).json({ error: "Invalid email" });
         }
 
         const existingUser = await User.findOne({ username });
-        if(existingUser){
-            return res.status(400).json({error: "Username already exists"});
+        if (existingUser) {
+            return res.status(400).json({ error: "Username already exists" });
         }
 
         user.username = username || user.username;
@@ -173,14 +173,14 @@ export const getSearchUser = async (req, res) => {
 
         let user = await User.findOne(userId);
 
-        if(!user){
-            return res.status(404).json({message: "User not found"});
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
         }
 
-        const {searchTerm} = req.params;
+        const { searchTerm } = req.params;
 
-        if(!searchTerm){
-            return res.status(400).json({error: "Search term is required"});
+        if (!searchTerm) {
+            return res.status(400).json({ error: "Search term is required" });
         }
 
         // here i means the search will be case insensitive
@@ -189,8 +189,8 @@ export const getSearchUser = async (req, res) => {
         // Search the user using mongoose
         const users = await User.find({
             $or: [
-                {username: regex},
-                {fullName: regex}
+                { username: regex },
+                { fullName: regex }
             ]
         }).select("-password");
 
@@ -202,6 +202,39 @@ export const getSearchUser = async (req, res) => {
         res.status(200).json(filteredUsers);
     } catch (error) {
         console.log("Error in getSearchUser ", error.message);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+export const getFollowersFollowing = async (req, res) => {
+    try {
+        const {username} = req.params;
+
+        const user = await User.findOne({ username }).populate({
+            path: "following",
+            select: 'username fullName profileImg'
+        }).populate({
+            path: "followers",
+            select: 'username fullName profileImg'
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const { type } = req.query;
+
+        if (type === "following") {
+            return res.status(200).json(user.following);
+        }
+
+        if (type === "followers") {
+            return res.status(200).json(user.followers);
+        }
+
+        return res.status(400).json({error: "Invalid query type"})
+    } catch (error) {
+        console.log("Error in getFollowersFollowing ", error.message);
         res.status(500).json({ error: error.message });
     }
 }

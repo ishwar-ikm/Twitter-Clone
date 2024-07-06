@@ -3,15 +3,24 @@ import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 import { IoSearch } from 'react-icons/io5'
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Link } from 'react-router-dom';
 import UsersList from '../../components/common/UsersList';
 
 const SearchPage = () => {
 
 	const [searchInput, setSearchInput] = useState("");
+	const [searchInput, setSearchInput] = useState("");
 
 	const [searchResult, setSearchResult] = useState([]);
+	const [searchResult, setSearchResult] = useState([]);
 
+	const { mutate: search, isPending } = useMutation({
+		mutationFn: async () => {
+			try {
+				if (searchInput === "") {
+					throw new Error("Enter something to search");
+				}
+				const res = await fetch(`/api/users/searchUser/${searchInput}`);
+				const data = await res.json();
 	const { mutate: search, isPending } = useMutation({
 		mutationFn: async () => {
 			try {
@@ -24,7 +33,18 @@ const SearchPage = () => {
 				if (!res.ok) {
 					throw new Error(data.error || "Something went wrong");
 				}
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
 
+				return data;
+			} catch (error) {
+				throw error;
+			}
+		},
+		onSuccess: async (data) => {
+			setSearchResult(data);
+		},
 				return data;
 			} catch (error) {
 				throw error;
@@ -38,7 +58,14 @@ const SearchPage = () => {
 			toast.error(error.message);
 		}
 	});
+		onError: async (error) => {
+			toast.error(error.message);
+		}
+	});
 
+	const handleSearch = () => {
+		search();
+	}
 	const handleSearch = () => {
 		search();
 	}
@@ -60,12 +87,13 @@ const SearchPage = () => {
 				{searchResult?.length === 0 && <div className='text-center p-4 font-bold'>Find people you want to follow!</div>}
 				{searchResult?.map((user) => (
 					<div className='flex w-full justify-around gap-2 p-4 border-b border-gray-700' key={user._id}>
-						<UsersList user={user} isPending={isPending} />
+						<UsersList user={user} />
 					</div>
 				))}
 			</div>
 		</>
 
+	)
 	)
 }
 
