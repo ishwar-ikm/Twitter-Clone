@@ -161,22 +161,22 @@ To run this project locally, follow these steps:
 ## Screenshots
 
 ### Sign Up
-![Home](screenshots\signup.png)
+![signup](screenshots/signup.png)
 
 ### Sign In
-![Home](screenshots\signin.png)
+![signin](screenshots/signin.png)
 
 ### Home
-![Home](screenshots\home.png)
+![Home](screenshots/home.png)
 
 ### Notifications
-![Home](screenshots\notifications.png)
+![notifications](screenshots/notifications.png)
 
 ### Search
-![Home](screenshots\search.png)
+![search](screenshots/search.png)
 
 ### Profile
-![Home](screenshots\profile.png)
+![profile](screenshots/profile.png)
 
 ### Skeleton
-![Home](screenshots\skeleton.png)
+![skeleton](screenshots/skeleton.png)
