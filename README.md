@@ -38,9 +38,9 @@ This project is a social media platform that allows users to create profiles, co
 - User authentication (signup, login, logout).
 - User profiles with profile images, cover images, bios, and external links.
 - Posting functionality with text and optional images.
-- Like and comment functionality on posts.
+- Like, comment and retweet functionality on posts.
 - Follow and unfollow other users.
-- Notifications for follows and post likes.
+- Notifications for follows, post likes, comments and retweets.
 - Search functionality to find other users.
 - Responsive design for mobile and desktop views.
 
