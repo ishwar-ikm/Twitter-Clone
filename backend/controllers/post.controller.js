@@ -227,7 +227,7 @@ export const getUserPosts = async (req, res) => {
             return res.status(404).json({error: "User not found"});
         }
         
-        const posts = await Post.find({user: user._id}).sort({createdAt: -1}).populate({
+        const posts = await Post.find({$or: [{user: user._id}, {retweets: user._id}]}).sort({createdAt: -1}).populate({
             path: "user",
             select: "-password"
         }).populate({
@@ -236,6 +236,42 @@ export const getUserPosts = async (req, res) => {
         })
 
         res.status(200).json(posts);
+    } catch (error) {
+        console.log("Error in getUserPosts ", error.message);
+        res.status(500).json({error: "Internal server error"});
+    }
+}
+
+export const retweetsPost = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+        
+        if(!user){
+            return res.status(404).json({error: "User not found"});
+        }
+        
+        const {id} = req.params;
+
+        const post = await Post.findById(id);
+        if(!post) {
+            return res.status(404).json({error: "Post not found"});
+        }
+
+        const isAlreadyretweetsed = post.retweets.includes(userId);
+
+        if(isAlreadyretweetsed){
+            await Post.updateOne({_id:id}, {$pull: {retweets: userId}});
+
+            const updateretweets = post.retweets.filter((id) => id.toString() !== userId.toString());
+
+            return res.status(200).json(updateretweets);
+        }else{
+            post.retweets.push(userId);
+            await post.save();
+
+            return res.status(200).json(post.retweets);
+        }
     } catch (error) {
         console.log("Error in getUserPosts ", error.message);
         res.status(500).json({error: "Internal server error"});

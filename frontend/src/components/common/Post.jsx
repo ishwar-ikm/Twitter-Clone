@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import LoadingSpinner from "../common/LoadingSpinner"
 import {formatPostDate} from "../../utils/date/date"
 
-const Post = ({ post }) => {
+const Post = ({ post, username }) => {
 	const [comment, setComment] = useState("");
 
 	const queryClient = useQueryClient();
@@ -22,6 +22,7 @@ const Post = ({ post }) => {
 	
 	const postOwner = post.user;
 	const isLiked = post.likes.includes(authUser._id);
+	const isRetweeted = post.retweets?.includes(authUser._id);
 
 	const isMyPost = postOwner._id === authUser._id;
 
@@ -74,6 +75,36 @@ const Post = ({ post }) => {
 				return oldData.map(p => {
 					if (p._id === post._id) {
 						return { ...p, likes: updatedLikes };
+					}
+					return p;
+				});
+			});
+		}
+	});
+
+	const { mutate: retweets, isPending: isretweeting } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`/api/posts/retweets/${post._id}`, {
+					method: "POST",
+				});
+
+				const data = res.json();
+
+				if (!res.ok) {
+					throw new Error(data.error || "something went wrong");
+				}
+
+				return data;
+			} catch (error) {
+				toast.error(error.message);
+			}
+		},
+		onSuccess: (updatedretweets) => {
+			queryClient.setQueryData(["posts"], (oldData) => {
+				return oldData.map(p => {
+					if (p._id === post._id) {
+						return { ...p, retweets: updatedretweets };
 					}
 					return p;
 				});
@@ -134,8 +165,14 @@ const Post = ({ post }) => {
 		likePost();
 	};
 
+	const handleRetweet = () => {
+		if (isretweeting) return;
+		retweets();
+	};
+
 	return (
 		<>
+			{username && postOwner.username !== username && <p className="pl-4 pt-4 flex gap-2 text-gray-500 text-sm"><BiRepost className='w-6 h-6'/>{username === authUser.username ? "You" : username} reposted</p>}
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
 				<div className='avatar'>
 					<Link to={`/profile/${postOwner.username}`} className='w-8 rounded-full overflow-hidden'>
@@ -233,13 +270,19 @@ const Post = ({ post }) => {
 									<button className='outline-none'>close</button>
 								</form>
 							</dialog>
-							<div className='flex gap-1 items-center group cursor-pointer'>
-								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' 
-									onClick={e => {
-										toast.error("Retweet functionality comming soon");
-									}}
-								/>
-								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
+							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleRetweet}>
+								{isretweeting && <LoadingSpinner size="sm" />}
+								{!isRetweeted && !isretweeting && (
+									<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' />
+								)}
+								{isRetweeted && !isretweeting && <BiRepost className='w-6 h-6 text-green-500' />}
+
+								<span
+									className={`text-sm text-slate-500 group-hover:text-green-500 ${isRetweeted ? "text-green-500" : ""
+										}`}
+								>
+									{post.retweets?.length}
+								</span>
 							</div>
 							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
 								{isLiking && <LoadingSpinner size="sm" />}
