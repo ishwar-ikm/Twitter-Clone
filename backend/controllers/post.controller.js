@@ -104,6 +104,14 @@ export const commentOnPost = async (req, res) => {
         post.comments.push(comment);
         await post.save();
 
+        const notification = new Notification({
+            from: userId,
+            to: post.user,
+            type: "comment"
+        });
+
+        await notification.save();
+
         const populatedPost = await Post.findById(postId).populate({
             path: "user",
             select: "-password"
@@ -269,6 +277,14 @@ export const retweetsPost = async (req, res) => {
         }else{
             post.retweets.push(userId);
             await post.save();
+
+            const notification = new Notification({
+                from: userId,
+                to: post.user,
+                type: "retweet"
+            });
+
+            await notification.save();
 
             return res.status(200).json(post.retweets);
         }

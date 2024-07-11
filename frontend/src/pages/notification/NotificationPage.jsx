@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
+import { FaComment, FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
+import { BiRepost } from "react-icons/bi";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
@@ -81,27 +82,38 @@ const NotificationPage = () => {
 				)}
 				{notifications?.length === 0 && <div className='text-center p-4 font-bold'>No notifications 🤔</div>}
 				{notifications?.map((notification) => (
-					<div className='border-b border-gray-700' key={notification._id}>
-						<div className='flex gap-2 p-4'>
-							{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
-							{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
-							<Link to={`/profile/${notification.from.username}`}>
-								<div>
-									<div className='avatar'>
-										<div className='w-8 rounded-full'>
-											<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
+					notification.from._id !== notification.to && (
+						<div
+							className={`border-b border-gray-700 ${notification.read === false && "bg-blue-950 bg-opacity-35"}`}
+							key={notification._id}
+						>
+							<div className='flex gap-2 p-4'>
+								{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
+								{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
+								{notification.type === "retweet" && <BiRepost className='w-7 h-7 text-green-500' />}
+								{notification.type === "comment" && <FaComment className='w-7 h-7 text-yellow-500' />}
+								<Link to={`/profile/${notification.from.username}`}>
+									<div>
+										<div className='avatar'>
+											<div className='w-8 rounded-full'>
+												<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
+											</div>
+										</div>
+										<div className='flex gap-1'>
+											<span className='font-bold'>@{notification.from.username}</span>{" "}
+											{notification.type === "follow" && "followed you"}
+											{notification.type === "like" && "liked your post"}
+											{notification.type === "retweet" && "retweeted your post"}
+											{notification.type === "comment" && "commented on your post"}
 										</div>
 									</div>
-									<div className='flex gap-1'>
-											<span className='font-bold'>@{notification.from.username}</span>{" "}
-											{notification.type === "follow" ? "followed you" : "liked your post"}
-									</div>
-								</div>
-								<span className='text-sm text-slate-500'>{formatPostDate(notification.createdAt)}</span>
-							</Link>
+									<span className='text-sm text-slate-500'>{formatPostDate(notification.createdAt)}</span>
+								</Link>
+							</div>
 						</div>
-					</div>
+					)
 				))}
+
 			</div>
 		</>
 	);

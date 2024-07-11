@@ -16,7 +16,7 @@ const notiSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['follow', 'like']
+        enum: ['follow', 'like', 'retweet', 'comment']
     },
 
     read: {
